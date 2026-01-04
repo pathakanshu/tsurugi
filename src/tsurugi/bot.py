@@ -7,7 +7,13 @@ import matplotlib.pyplot as plt
 from discord.ext import commands
 
 from .database import run_sql_query, store_messages
-from .helpers.permissions import is_anshu
+from .helpers.permissions import (
+    get_user_permissions,
+    grant_command,
+    is_anshu,
+    requires_permission,
+    revoke_command,
+)
 from .mcserver import restart_server, start_server, stop_server
 
 intents = discord.Intents.default()
@@ -60,7 +66,86 @@ async def archive(ctx):
     await ctx.send(f"Stored {count} messages to SQLite database.")
 
 
+@bot.command(name="grant")
+@is_anshu()
+async def grant(ctx, user: discord.User, command_name: str):
+    """
+    Grant a user permission to run a specific command.
+    Usage: !grant @user command_name
+    Example: !grant @john runsql
+    """
+    if grant_command(str(user.id), command_name):
+        await ctx.send(
+            f"✅ Granted `{user.name}` permission to use `!{command_name}` command."
+        )
+    else:
+        await ctx.send("❌ Failed to grant permission.")
+
+
+@bot.command(name="revoke")
+@is_anshu()
+async def revoke(ctx, user: discord.User, command_name: str):
+    """
+    Revoke a user's permission to run a specific command.
+    Usage: !revoke @user command_name
+    Example: !revoke @john runsql
+    """
+    if revoke_command(str(user.id), command_name):
+        await ctx.send(
+            f"✅ Revoked `{user.name}`'s permission to use `!{command_name}` command."
+        )
+    else:
+        await ctx.send("❌ Failed to revoke permission.")
+
+
+@bot.command(name="permissions")
+@is_anshu()
+async def permissions(ctx, user: discord.User | None = None):
+    """
+    View permissions for a user or all users.
+    Usage: !permissions [@user]
+    """
+    if user:
+        # Show permissions for specific user
+        perms = get_user_permissions(str(user.id))
+        if perms:
+            perms_list = ", ".join([f"`!{cmd}`" for cmd in perms])
+            await ctx.send(f"**{user.name}** can run: {perms_list}")
+        else:
+            await ctx.send(f"**{user.name}** has no special command permissions.")
+    else:
+        # Show all permissions
+        from .helpers.permissions import COMMAND_PERMISSIONS
+
+        if not COMMAND_PERMISSIONS:
+            await ctx.send("No command permissions have been granted yet.")
+            return
+
+        embed = discord.Embed(
+            title="Command Permissions",
+            color=0x00FF00,
+        )
+
+        for command_name, user_ids in COMMAND_PERMISSIONS.items():
+            if user_ids:
+                users = []
+                for user_id in user_ids:
+                    try:
+                        u = await bot.fetch_user(int(user_id))
+                        users.append(u.name)
+                    except Exception:
+                        users.append(f"<@{user_id}>")
+                embed.add_field(
+                    name=f"!{command_name}",
+                    value=", ".join(users),
+                    inline=False,
+                )
+
+        await ctx.send(embed=embed)
+
+
 @bot.command(name="matplotlib")
+@requires_permission("matplotlib")
 async def matplotlib(ctx, *, code: str = ""):
     """
     Executes matplotlib code and returns the generated plot as an image.
@@ -127,7 +212,7 @@ async def matplotlib(ctx, *, code: str = ""):
 
 
 @bot.command(name="runsql")
-@commands.has_permissions(administrator=True)
+@requires_permission("runsql")
 async def runsql(ctx, *, query: str = ""):
     """
     Runs a SQL query on the database file in the current directory.
