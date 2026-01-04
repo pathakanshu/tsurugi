@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from discord.ext import commands
 
 from .database import run_sql_query, store_messages
+from .helpers.permissions import is_anshu
 from .mcserver import restart_server, start_server, stop_server
 
 intents = discord.Intents.default()
@@ -51,7 +52,7 @@ async def mcserver(ctx, *, arg):
 
 
 @bot.command(name="archive")
-@commands.has_permissions(administrator=True)
+@is_anshu()
 async def archive(ctx):
     # Goes through all messsages in the current channel and stores all data into a sqllite database
     await ctx.send("Storing messages to SQLite. This may take a while...")
