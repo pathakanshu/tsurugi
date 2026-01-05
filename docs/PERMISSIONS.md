@@ -12,6 +12,27 @@ The Tsurugi bot has a flexible permission system that allows Anshu to grant spec
 
 ### For Anshu Only
 
+#### `!lock`
+Lock the bot. Only Anshu can use commands when locked.
+
+**Example:**
+```
+!lock
+```
+
+When locked:
+- All users except Anshu are blocked from using any commands
+- Anshu can still use all commands normally
+- Useful for maintenance or emergency situations
+
+#### `!unlock`
+Unlock the bot. Normal permissions resume.
+
+**Example:**
+```
+!unlock
+```
+
 #### `!grant <user> <command_name>`
 Grant a user permission to run a specific command.
 
@@ -41,6 +62,24 @@ View permissions for a specific user or all users.
 
 #### `!archive`
 Archive all messages in the current channel to SQLite database. This command is restricted to Anshu only and cannot be granted to other users.
+
+## Lockdown Mode
+
+The bot can be put into lockdown mode where only Anshu can execute commands.
+
+**When locked:**
+- All commands with `@requires_permission` decorator are blocked for non-Anshu users
+- Anshu's commands (`!lock`, `!unlock`, `!grant`, `!revoke`, `!permissions`, `!archive`) remain accessible to Anshu
+- Users attempting to run commands receive: "🔒 Bot is locked. Only Anshu can use commands."
+
+**Use cases:**
+- Emergency maintenance
+- Preventing command usage during debugging
+- Temporarily disabling bot functionality
+
+**Commands:**
+- `!lock` - Enable lockdown mode
+- `!unlock` - Disable lockdown mode
 
 ## Protected Commands
 
@@ -74,8 +113,8 @@ Located in `src/tsurugi/helpers/permissions.py`:
 
 ### Decorators
 
-- `@is_anshu()` - Restrict command to Anshu only
-- `@requires_permission("command_name")` - Require permission for command
+- `@is_anshu()` - Restrict command to Anshu only (always works, even in lockdown)
+- `@requires_permission("command_name")` - Require permission for command (respects lockdown mode)
 
 ### Usage in Bot Commands
 
@@ -90,7 +129,9 @@ async def runsql(ctx, *, query: str = ""):
 ## Security Notes
 
 - Anshu's user IDs are read from `user_mappings.json`
-- Anshu always has permission to run all commands
+- Anshu always has permission to run all commands (even when locked)
 - The `!archive` command cannot be delegated (Anshu only)
 - Permission changes are saved immediately to disk
 - If `command_permissions.json` doesn't exist, it's created automatically
+- Lockdown state is in-memory only (resets on bot restart)
+- Lockdown blocks all `@requires_permission` commands for non-Anshu users
