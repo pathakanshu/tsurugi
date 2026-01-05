@@ -49,6 +49,7 @@ def get_anshu_user_ids() -> set[str]:
     if "users" in USER_MAPPINGS_DATA and "anshu" in USER_MAPPINGS_DATA["users"]:
         for account in USER_MAPPINGS_DATA["users"]["anshu"]["accounts"]:
             anshu_ids.add(account["user_id"])
+    print(anshu_ids)
     return anshu_ids
 
 
@@ -140,14 +141,28 @@ def get_user_permissions(user_id: str) -> list[str]:
     return permissions
 
 
-def is_anshu():
-    """Custom check to ensure only Anshu can run certain commands."""
+def is_anshu(allow_when_locked: bool = False):
+    """
+    Custom check to ensure only Anshu can run certain commands.
+
+    Args:
+        allow_when_locked: If True, allows Anshu to use this command even when locked.
+                          Use this for unlock command only.
+    """
 
     async def predicate(ctx):
         anshu_ids = get_anshu_user_ids()
-        if str(ctx.author.id) not in anshu_ids:
+        user_id = str(ctx.author.id)
+
+        if user_id not in anshu_ids:
             await ctx.send("❌ This command can only be used by Anshu.")
             return False
+
+        # Check lockdown (unless explicitly allowed)
+        if _is_locked and not allow_when_locked:
+            await ctx.send("🔒 Bot is locked. Use !unlock to restore access.")
+            return False
+
         return True
 
     return commands.check(predicate)
@@ -157,15 +172,15 @@ def requires_permission(command_name: str):
     """
     Custom check to ensure user has permission to run a specific command.
     Anshu always has permission.
-    Respects lockdown mode - only Anshu can run commands when locked.
+    Respects lockdown mode - blocks all users including Anshu when locked.
     """
 
     async def predicate(ctx):
         user_id = str(ctx.author.id)
 
-        # If locked, only Anshu can proceed
-        if _is_locked and user_id not in get_anshu_user_ids():
-            await ctx.send("🔒 Bot is locked. Only Anshu can use commands.")
+        # If locked, block everyone
+        if _is_locked:
+            await ctx.send("🔒 Bot is locked. Use !unlock to restore access.")
             return False
 
         if has_command_permission(user_id, command_name):
