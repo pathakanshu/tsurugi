@@ -11,8 +11,11 @@ from .helpers.permissions import (
     get_user_permissions,
     grant_command,
     is_anshu,
+    is_locked,
+    lock_bot,
     requires_permission,
     revoke_command,
+    unlock_bot,
 )
 from .helpers.safety import (
     RateLimitError,
@@ -64,6 +67,34 @@ async def mcserver(ctx, *, arg):
             await ctx.send("Config is yet to be implemented")
         case _:
             await ctx.send("Invalid argument.")
+
+
+@bot.command(name="lock")
+@is_anshu()
+async def lock(ctx):
+    """
+    Lock the bot. Only Anshu can use commands when locked.
+    Usage: !lock
+    """
+    if is_locked():
+        await ctx.send("🔒 Bot is already locked.")
+    else:
+        lock_bot()
+        await ctx.send("🔒 Bot locked. Only Anshu can use commands now.")
+
+
+@bot.command(name="unlock")
+@is_anshu()
+async def unlock(ctx):
+    """
+    Unlock the bot. Normal permissions resume.
+    Usage: !unlock
+    """
+    if not is_locked():
+        await ctx.send("🔓 Bot is already unlocked.")
+    else:
+        unlock_bot()
+        await ctx.send("🔓 Bot unlocked. Normal permissions restored.")
 
 
 @bot.command(name="archive")
