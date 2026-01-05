@@ -50,10 +50,6 @@ def server_is_running():
     return SCREEN_NAME in result.stdout
 
 
-import asyncio
-import subprocess
-
-
 async def start_server(ctx):
     async with LOCK:
         if server_is_running():
@@ -73,10 +69,11 @@ async def start_server(ctx):
             # Read output in real time
             while True:
                 if process.stdout is not None:
-                line = process.stdout.readline()
-                if not line:
-                    break
-                print(line, end="")  # prints to your server console
+                    line = process.stdout.readline()
+
+                    if not line:
+                        break
+                    print(line, end="")  # prints to your server console
                 # Optionally, you could log this to a file:
                 # with open("mcserver.log", "a") as f:
                 #     f.write(line)

@@ -14,3 +14,8 @@ dependencies = [
 
 [project.scripts]
 tsurugi = "tsurugi.__main__:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+]

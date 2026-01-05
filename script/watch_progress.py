@@ -64,7 +64,6 @@ def monitor_progress(continuous=False, interval=5):
     print("=" * 70)
 
     last_size = 0
-    start_time = time.time()
 
     try:
         while True:
@@ -106,7 +105,6 @@ def monitor_progress(continuous=False, interval=5):
                 print(f"❌ Status: STALLED? (modified {int(time_since_modified)}s ago)")
 
             # Progress milestones
-            print(f"\n🎯 Milestones:")
             milestones = [
                 (100, "✓" if avg_est >= 100 else "○"),
                 (1000, "✓" if avg_est >= 1000 else "○"),
