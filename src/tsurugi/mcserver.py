@@ -78,7 +78,7 @@ async def start_server(ctx):
                 # with open("mcserver.log", "a") as f:
                 #     f.write(line)
             print("test")
-            print(process.stdout)
+            print(process.stdout.readlines())
 
             await msg.edit(content="Minecraft server started successfully!")
         except subprocess.CalledProcessError as e:
