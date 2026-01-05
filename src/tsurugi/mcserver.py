@@ -44,7 +44,15 @@ def server_is_running():
 
 
 async def start_server(ctx):
-    async with LOCK:
+    # Try to acquire lock with timeout
+    try:
+        async with asyncio.timeout(5):
+            await LOCK.acquire()
+    except TimeoutError:
+        await ctx.send("⏱️ Server operation in progress. Please wait and try again.")
+        return
+
+    try:
         if server_is_running():
             await ctx.send("Minecraft server is already running!")
             return
@@ -61,10 +69,20 @@ async def start_server(ctx):
             await msg.edit(content="Minecraft server started successfully!")
         except subprocess.CalledProcessError as e:
             await msg.edit(content=f"Failed to start Minecraft server: {e}")
+    finally:
+        LOCK.release()
 
 
 async def stop_server(ctx):
-    async with LOCK:
+    # Try to acquire lock with timeout
+    try:
+        async with asyncio.timeout(5):
+            await LOCK.acquire()
+    except TimeoutError:
+        await ctx.send("⏱️ Server operation in progress. Please wait and try again.")
+        return
+
+    try:
         if not server_is_running():
             await ctx.send("Minecraft server is not running!")
             return
@@ -79,11 +97,45 @@ async def stop_server(ctx):
             await msg.edit(content="Minecraft server stopped successfully!")
         except subprocess.CalledProcessError as e:
             await msg.edit(content=f"Failed to stop Minecraft server: {e}")
+    finally:
+        LOCK.release()
 
 
 async def restart_server(ctx):
-    async with LOCK:
-        await ctx.send("stopping...")
-        await stop_server(ctx)
-        await ctx.send("restarting...")
-        await start_server(ctx)
+    # Try to acquire lock with timeout
+    try:
+        async with asyncio.timeout(5):
+            await LOCK.acquire()
+    except TimeoutError:
+        await ctx.send("⏱️ Server operation in progress. Please wait and try again.")
+        return
+
+    try:
+        if not server_is_running():
+            await ctx.send("Minecraft server is not running!")
+            return
+
+        # Stop the server
+        msg = await ctx.send("Stopping Minecraft server...")
+        try:
+            subprocess.run(
+                ["screen", "-S", SCREEN_NAME, "-X", "stuff", "stop\n"], check=True
+            )
+            await msg.edit(content="Server stopped. Waiting before restart...")
+            await asyncio.sleep(5)  # Wait for clean shutdown
+        except subprocess.CalledProcessError as e:
+            await msg.edit(content=f"Failed to stop server: {e}")
+            return
+
+        # Start the server
+        await msg.edit(content="Starting Minecraft server...")
+        try:
+            subprocess.run(
+                ["screen", "-dmS", SCREEN_NAME, "bash", "-c", _get_start_cmd()],
+                check=True,
+            )
+            await msg.edit(content="Minecraft server restarted successfully!")
+        except subprocess.CalledProcessError as e:
+            await msg.edit(content=f"Failed to start server: {e}")
+    finally:
+        LOCK.release()
