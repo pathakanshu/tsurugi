@@ -55,13 +55,10 @@ async def ping(ctx):
 async def mcserver(ctx, *, arg):
     match arg:
         case "start":
-            await ctx.send("Starting Minecraft server...")
             await start_server(ctx)
         case "stop":
-            await ctx.send("Stopping Minecraft server...")
             await stop_server(ctx)
         case "restart":
-            await ctx.send("Restarting Minecraft server...")
             await restart_server(ctx)
         case "config":
             await ctx.send("Config is yet to be implemented")

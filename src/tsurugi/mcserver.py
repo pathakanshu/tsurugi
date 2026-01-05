@@ -50,14 +50,37 @@ def server_is_running():
     return SCREEN_NAME in result.stdout
 
 
+import asyncio
+import subprocess
+
+
 async def start_server(ctx):
     async with LOCK:
         if server_is_running():
             await ctx.send("Minecraft server is already running!")
             return
+
         msg = await ctx.send("Starting Minecraft server...")
+
         try:
-            subprocess.run(_get_start_cmd(), check=True)
+            process = subprocess.Popen(
+                _get_start_cmd(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+
+            # Read output in real time
+            while True:
+                if process.stdout is not None:
+                line = process.stdout.readline()
+                if not line:
+                    break
+                print(line, end="")  # prints to your server console
+                # Optionally, you could log this to a file:
+                # with open("mcserver.log", "a") as f:
+                #     f.write(line)
+
             await msg.edit(content="Minecraft server started successfully!")
         except subprocess.CalledProcessError as e:
             await msg.edit(content=f"Failed to start Minecraft server: {e}")
