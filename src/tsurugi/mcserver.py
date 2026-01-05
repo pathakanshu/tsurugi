@@ -28,14 +28,7 @@ def _get_start_cmd():
     """Build the start command from config."""
     config = _load_config()
 
-    return [
-        "screen",
-        "-dmS",
-        SCREEN_NAME,
-        "bash",
-        "-c",
-        f"cd {os.path.expanduser(config['minecraft']['path'])} && java -Xms12G -Xmx16G -jar {os.path.expanduser(config['minecraft']['path'] + config['minecraft']['jar_file_name'])} nogui",
-    ]
+    return f"cd {os.path.expanduser(config['minecraft']['path'])} && java -Xms12G -Xmx16G -jar {os.path.expanduser(config['minecraft']['path'] + config['minecraft']['jar_file_name'])} nogui"
 
 
 def server_is_running():
@@ -53,24 +46,11 @@ async def start_server(ctx):
         msg = await ctx.send("Starting Minecraft server...")
         print(_get_start_cmd())
         try:
-            process = subprocess.Popen(
-                _get_start_cmd(),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
+            # Start the Minecraft server in a screen session
+            subprocess.run(
+                ["screen", "-dmS", SCREEN_NAME, "bash", "-c", _get_start_cmd()],
+                check=True,
             )
-
-            # Read output in real time
-            while True:
-                if process.stdout is not None:
-                    line = process.stdout.readline()
-
-                    if not line:
-                        break
-                    print(line, end="")  # prints to your server console
-                # Optionally, you could log this to a file:
-                # with open("mcserver.log", "a") as f:
-                #     f.write(line)
 
             await msg.edit(content="Minecraft server started successfully!")
         except subprocess.CalledProcessError as e:
@@ -96,5 +76,7 @@ async def stop_server(ctx):
 
 async def restart_server(ctx):
     async with LOCK:
+        await ctx.send("stopping...")
         await stop_server(ctx)
+        await ctx.send("restarting...")
         await start_server(ctx)
