@@ -12,7 +12,7 @@ def _load_config():
     """Lazy load server configuration."""
     global _config
     if _config is None:
-        config_path = os.path.join(os.path.dirname(__file__), "server_info.jsonc")
+        config_path = os.path.join(os.path.dirname(__file__), "server_info.json")
 
         try:
             with open(config_path, "r") as f:
