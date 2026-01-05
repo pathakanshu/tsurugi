@@ -35,12 +35,9 @@ def _get_start_cmd():
         "screen",
         "-dmS",
         SCREEN_NAME,
-        "java",
-        "-Xms12G",  # Minimum memory allocation
-        "-Xmx16G",  # Maximum memory allocation
-        "-jar",
-        jar_full_path,
-        "nogui",
+        "bash",
+        "-c",
+        f"cd {os.path.expanduser(config['minecraft']['path'])} && java -Xms12G -Xmx16G -jar {os.path.expanduser(config['minecraft']['path'] + config['minecraft']['jar_file_name'])} nogui",
     ]
 
 
