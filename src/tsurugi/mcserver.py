@@ -29,7 +29,7 @@ def _get_start_cmd():
     config = _load_config()
 
     jar_path: str = config["minecraft"]["path"] + config["minecraft"]["jar_file_name"]
-    jar_full_path: str = os.path.expanduser(jar_path)
+    jar_full_path: str = os.path.abspath(jar_path)
 
     return [
         "screen",
@@ -57,24 +57,6 @@ async def start_server(ctx):
             return
 
         msg = await ctx.send("Starting Minecraft server...")
-        config = _load_config()
-
-        jar_full_path = (
-            config["minecraft"]["path"] + config["minecraft"]["jar_file_name"]
-        )
-        print(
-            [
-                "screen",
-                "-dmS",
-                SCREEN_NAME,
-                "java",
-                "-Xms12G",  # Minimum memory allocation
-                "-Xmx16G",  # Maximum memory allocation
-                "-jar",
-                jar_full_path,
-                "nogui",
-            ]
-        )
 
         try:
             process = subprocess.Popen(
