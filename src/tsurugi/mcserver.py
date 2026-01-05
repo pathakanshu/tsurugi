@@ -50,7 +50,7 @@ def server_is_running():
     return SCREEN_NAME in result.stdout
 
 
-async def start_server(ctx):
+async def nstart_server(ctx):
     async with LOCK:
         if server_is_running():
             await ctx.send("Minecraft server is already running!")
@@ -77,6 +77,7 @@ async def start_server(ctx):
                 # Optionally, you could log this to a file:
                 # with open("mcserver.log", "a") as f:
                 #     f.write(line)
+            print("test")
 
             await msg.edit(content="Minecraft server started successfully!")
         except subprocess.CalledProcessError as e:
