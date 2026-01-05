@@ -900,6 +900,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "discord-py" },
     { name = "matplotlib" },
+    { name = "numpy" },
     { name = "python-dotenv" },
     { name = "textblob" },
 ]
@@ -908,6 +909,7 @@ dependencies = [
 requires-dist = [
     { name = "discord-py", specifier = ">=2.6.4" },
     { name = "matplotlib", specifier = ">=3.10.8" },
+    { name = "numpy", specifier = ">=2.2.1" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "textblob", specifier = ">=0.18.0" },
 ]
