@@ -12,10 +12,8 @@ def _load_config():
     """Lazy load server configuration."""
     global _config
     if _config is None:
-        # config_path = os.path.join(
-        #    os.path.dirname(__file__), "data", "server_info.jsonc"
-        # )
-        config_path = "server_info.jsonc"
+        config_path = os.path.join(os.path.dirname(__file__), "server_info.jsonc")
+
         try:
             with open(config_path, "r") as f:
                 # Read file and remove comments for JSONC support
@@ -31,7 +29,6 @@ def _load_config():
 def _get_start_cmd():
     """Build the start command from config."""
     config = _load_config()
-    print(config)
 
     jar_full_path = config["minecraft"]["path"] + config["minecraft"]["jar_file_name"]
     return [
