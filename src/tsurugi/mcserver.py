@@ -28,8 +28,10 @@ def _get_start_cmd():
     """Build the start command from config."""
     config = _load_config()
 
-    jar_full_path = os.path.expanduser(
-        config["minecraft"]["path"] + config["minecraft"]["jar_file_name"]
+    jar_full_path = os.path.abspath(
+        os.path.expanduser(
+            config["minecraft"]["path"] + config["minecraft"]["jar_file_name"]
+        )
     )
     return [
         "screen",
