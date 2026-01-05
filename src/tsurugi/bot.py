@@ -73,18 +73,18 @@ async def mcserver(ctx, *, arg):
 @is_anshu()
 async def lock(ctx):
     """
-    Lock the bot. Only Anshu can use commands when locked.
+    Lock the bot. No one can use commands when locked (except !unlock).
     Usage: !lock
     """
     if is_locked():
         await ctx.send("🔒 Bot is already locked.")
     else:
         lock_bot()
-        await ctx.send("🔒 Bot locked. Only Anshu can use commands now.")
+        await ctx.send("🔒 Bot locked. All commands disabled. Use !unlock to restore.")
 
 
 @bot.command(name="unlock")
-@is_anshu()
+@is_anshu(allow_when_locked=True)
 async def unlock(ctx):
     """
     Unlock the bot. Normal permissions resume.
