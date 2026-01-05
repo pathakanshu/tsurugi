@@ -201,11 +201,6 @@ async def matplotlib(ctx, *, code: str = ""):
         await ctx.send(f"❌ Unsafe code detected: {warning}")
         return
 
-    # Limit code length
-    if len(code) > 2000:
-        await ctx.send("❌ Code is too long (max 2000 characters)")
-        return
-
     # Use restricted globals for safety
     safe_globals = get_safe_exec_globals()
     local_scope = {}
@@ -282,11 +277,6 @@ async def runsql(ctx, *, query: str = ""):
     is_valid, error_msg = validate_sql_query(query)
     if not is_valid:
         await ctx.send(f"❌ Query validation failed: {error_msg}")
-        return
-
-    # Limit query length
-    if len(query) > 5000:
-        await ctx.send("❌ Query is too long (max 5000 characters)")
         return
 
     # Find any database file (not channel-specific)
