@@ -19,7 +19,6 @@ from .helpers.safety import (
     TimeoutError,
     check_code_safety,
     get_safe_exec_globals,
-    limit_query_results,
     rate_limit,
     timeout,
     validate_sql_query,
@@ -322,15 +321,10 @@ async def runsql(ctx, *, query: str = ""):
 
         results = execute_query()
 
-        # Limit results
-        results, was_truncated = limit_query_results(results, max_rows=1000)
-
         if not results:
             response = "Query executed successfully, but no results to display."
         else:
             result_str = "\n".join([str(row) for row in results])
-            if was_truncated:
-                result_str += "\n\n⚠️ Results truncated to 1000 rows"
             response = f"Query Results:\n{result_str}"
 
         # Create a text file with the results
