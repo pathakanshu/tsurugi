@@ -16,13 +16,9 @@ def _load_config():
 
         try:
             with open(config_path, "r") as f:
-                # Read file and remove comments for JSONC support
-                content = f.read()
-                # Simple JSONC comment removal (doesn't handle all edge cases)
-                lines = [line.split("//")[0] for line in content.split("\n")]
-                _config = json.loads("\n".join(lines))
+                _config = json.load(f)
         except FileNotFoundError:
-            _config = {"minecraft": {"path": "", "jar_file_name": ""}}
+            raise FileNotFoundError("Server configuration file not found.")
     return _config
 
 
