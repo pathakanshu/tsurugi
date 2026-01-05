@@ -13,7 +13,7 @@ The Tsurugi bot has a flexible permission system that allows Anshu to grant spec
 ### For Anshu Only
 
 #### `!lock`
-Lock the bot. Only Anshu can use commands when locked.
+Lock the bot. **All commands are disabled** when locked (except `!unlock`).
 
 **Example:**
 ```
@@ -21,9 +21,9 @@ Lock the bot. Only Anshu can use commands when locked.
 ```
 
 When locked:
-- All users except Anshu are blocked from using any commands
-- Anshu can still use all commands normally
-- Useful for maintenance or emergency situations
+- **All users including Anshu** are blocked from using any commands
+- Only `!unlock` can be used to restore access
+- Useful for emergency shutdowns or maintenance
 
 #### `!unlock`
 Unlock the bot. Normal permissions resume.
@@ -65,21 +65,21 @@ Archive all messages in the current channel to SQLite database. This command is 
 
 ## Lockdown Mode
 
-The bot can be put into lockdown mode where only Anshu can execute commands.
+The bot can be put into complete lockdown mode where **all commands are disabled**.
 
 **When locked:**
-- All commands with `@requires_permission` decorator are blocked for non-Anshu users
-- Anshu's commands (`!lock`, `!unlock`, `!grant`, `!revoke`, `!permissions`, `!archive`) remain accessible to Anshu
-- Users attempting to run commands receive: "🔒 Bot is locked. Only Anshu can use commands."
+- **All commands are blocked for everyone** (including Anshu)
+- Only `!unlock` command works (Anshu only)
+- All users attempting to run commands receive: "🔒 Bot is locked. Use !unlock to restore access."
 
 **Use cases:**
-- Emergency maintenance
-- Preventing command usage during debugging
-- Temporarily disabling bot functionality
+- Emergency shutdown
+- Preventing all command usage during critical maintenance
+- Complete bot functionality disable
 
 **Commands:**
-- `!lock` - Enable lockdown mode
-- `!unlock` - Disable lockdown mode
+- `!lock` - Enable lockdown mode (disables everything except unlock)
+- `!unlock` - Disable lockdown mode (only works when locked)
 
 ## Protected Commands
 
@@ -113,8 +113,9 @@ Located in `src/tsurugi/helpers/permissions.py`:
 
 ### Decorators
 
-- `@is_anshu()` - Restrict command to Anshu only (always works, even in lockdown)
-- `@requires_permission("command_name")` - Require permission for command (respects lockdown mode)
+- `@is_anshu()` - Restrict command to Anshu only (blocked during lockdown unless `allow_when_locked=True`)
+- `@is_anshu(allow_when_locked=True)` - Restrict to Anshu only, works even when locked (used for `!unlock`)
+- `@requires_permission("command_name")` - Require permission for command (blocked during lockdown)
 
 ### Usage in Bot Commands
 
@@ -129,9 +130,9 @@ async def runsql(ctx, *, query: str = ""):
 ## Security Notes
 
 - Anshu's user IDs are read from `user_mappings.json`
-- Anshu always has permission to run all commands (even when locked)
+- Anshu has permission to run all commands **except when bot is locked**
 - The `!archive` command cannot be delegated (Anshu only)
 - Permission changes are saved immediately to disk
 - If `command_permissions.json` doesn't exist, it's created automatically
 - Lockdown state is in-memory only (resets on bot restart)
-- Lockdown blocks all `@requires_permission` commands for non-Anshu users
+- **Lockdown blocks ALL commands for ALL users** (only `!unlock` works)
