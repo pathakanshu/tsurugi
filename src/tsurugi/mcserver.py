@@ -29,7 +29,7 @@ def _get_start_cmd():
     config = _load_config()
 
     jar_path: str = config["minecraft"]["path"] + config["minecraft"]["jar_file_name"]
-    jar_full_path: str = os.path.abspath(jar_path)
+    jar_full_path: str = os.path.expanduser(jar_path)
 
     return [
         "screen",
