@@ -36,6 +36,9 @@ except FileNotFoundError:
 except Exception as e:
     print(f"Warning: Could not load command permissions: {e}")
 
+# Lockdown state
+_is_locked = False
+
 
 def get_anshu_user_ids() -> set[str]:
     """
@@ -47,6 +50,23 @@ def get_anshu_user_ids() -> set[str]:
         for account in USER_MAPPINGS_DATA["users"]["anshu"]["accounts"]:
             anshu_ids.add(account["user_id"])
     return anshu_ids
+
+
+def is_locked() -> bool:
+    """Check if the bot is in lockdown mode."""
+    return _is_locked
+
+
+def lock_bot():
+    """Enable lockdown mode. Only Anshu can use commands."""
+    global _is_locked
+    _is_locked = True
+
+
+def unlock_bot():
+    """Disable lockdown mode. Normal permissions resume."""
+    global _is_locked
+    _is_locked = False
 
 
 def save_command_permissions():
@@ -137,10 +157,18 @@ def requires_permission(command_name: str):
     """
     Custom check to ensure user has permission to run a specific command.
     Anshu always has permission.
+    Respects lockdown mode - only Anshu can run commands when locked.
     """
 
     async def predicate(ctx):
-        if has_command_permission(str(ctx.author.id), command_name):
+        user_id = str(ctx.author.id)
+
+        # If locked, only Anshu can proceed
+        if _is_locked and user_id not in get_anshu_user_ids():
+            await ctx.send("🔒 Bot is locked. Only Anshu can use commands.")
+            return False
+
+        if has_command_permission(user_id, command_name):
             return True
 
         await ctx.send(

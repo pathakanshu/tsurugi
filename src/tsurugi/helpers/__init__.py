@@ -6,8 +6,11 @@ from .permissions import (
     grant_command,
     has_command_permission,
     is_anshu,
+    is_locked,
+    lock_bot,
     requires_permission,
     revoke_command,
+    unlock_bot,
 )
 from .safety import (
     RateLimitError,
@@ -27,8 +30,11 @@ __all__ = [
     "grant_command",
     "has_command_permission",
     "is_anshu",
+    "is_locked",
+    "lock_bot",
     "requires_permission",
     "revoke_command",
+    "unlock_bot",
     "RateLimitError",
     "TimeoutError",
     "check_code_safety",
