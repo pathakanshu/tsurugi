@@ -44,15 +44,16 @@ def server_is_running():
 
 
 async def start_server(ctx):
-    # Try to acquire lock with timeout
-    try:
-        async with asyncio.timeout(5):
-            await LOCK.acquire()
-    except TimeoutError:
-        await ctx.send("⏱️ Server operation in progress. Please wait and try again.")
-        return
+    # Notify user if waiting for lock
+    if LOCK.locked():
+        wait_msg = await ctx.send("⏳ Waiting for current operation to complete...")
+    else:
+        wait_msg = None
 
-    try:
+    async with LOCK:
+        if wait_msg:
+            await wait_msg.delete()
+
         if server_is_running():
             await ctx.send("Minecraft server is already running!")
             return
@@ -69,20 +70,19 @@ async def start_server(ctx):
             await msg.edit(content="Minecraft server started successfully!")
         except subprocess.CalledProcessError as e:
             await msg.edit(content=f"Failed to start Minecraft server: {e}")
-    finally:
-        LOCK.release()
 
 
 async def stop_server(ctx):
-    # Try to acquire lock with timeout
-    try:
-        async with asyncio.timeout(5):
-            await LOCK.acquire()
-    except TimeoutError:
-        await ctx.send("⏱️ Server operation in progress. Please wait and try again.")
-        return
+    # Notify user if waiting for lock
+    if LOCK.locked():
+        wait_msg = await ctx.send("⏳ Waiting for current operation to complete...")
+    else:
+        wait_msg = None
 
-    try:
+    async with LOCK:
+        if wait_msg:
+            await wait_msg.delete()
+
         if not server_is_running():
             await ctx.send("Minecraft server is not running!")
             return
@@ -97,20 +97,19 @@ async def stop_server(ctx):
             await msg.edit(content="Minecraft server stopped successfully!")
         except subprocess.CalledProcessError as e:
             await msg.edit(content=f"Failed to stop Minecraft server: {e}")
-    finally:
-        LOCK.release()
 
 
 async def restart_server(ctx):
-    # Try to acquire lock with timeout
-    try:
-        async with asyncio.timeout(5):
-            await LOCK.acquire()
-    except TimeoutError:
-        await ctx.send("⏱️ Server operation in progress. Please wait and try again.")
-        return
+    # Notify user if waiting for lock
+    if LOCK.locked():
+        wait_msg = await ctx.send("⏳ Waiting for current operation to complete...")
+    else:
+        wait_msg = None
 
-    try:
+    async with LOCK:
+        if wait_msg:
+            await wait_msg.delete()
+
         if not server_is_running():
             await ctx.send("Minecraft server is not running!")
             return
@@ -137,5 +136,3 @@ async def restart_server(ctx):
             await msg.edit(content="Minecraft server restarted successfully!")
         except subprocess.CalledProcessError as e:
             await msg.edit(content=f"Failed to start server: {e}")
-    finally:
-        LOCK.release()
