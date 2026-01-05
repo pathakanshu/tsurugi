@@ -57,7 +57,7 @@ async def start_server(ctx):
             return
 
         msg = await ctx.send("Starting Minecraft server...")
-
+        print(_get_start_cmd())
         try:
             process = subprocess.Popen(
                 _get_start_cmd(),
@@ -77,8 +77,6 @@ async def start_server(ctx):
                 # Optionally, you could log this to a file:
                 # with open("mcserver.log", "a") as f:
                 #     f.write(line)
-            print("test")
-            print(process.stdout.readlines())
 
             await msg.edit(content="Minecraft server started successfully!")
         except subprocess.CalledProcessError as e:
