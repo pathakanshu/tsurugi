@@ -28,7 +28,13 @@ def _get_start_cmd():
     """Build the start command from config."""
     config = _load_config()
 
-    return f"cd {os.path.expanduser(config['minecraft']['path'])} && java -Xms12G -Xmx16G -jar {os.path.expanduser(config['minecraft']['path'] + config['minecraft']['jar_file_name'])} nogui"
+    return f"cd {
+        os.path.expanduser(config['minecraft']['path'])
+    } && java -Xms12G -Xmx16G -jar {
+        os.path.expanduser(
+            config['minecraft']['path'] + config['minecraft']['jar_file_name']
+        )
+    } nogui"
 
 
 def server_is_running():
@@ -66,6 +72,7 @@ async def stop_server(ctx):
         try:
             # Send "stop" to the server console inside the screen session
             # "stuff" is an actual command to send text to the screen session
+            # In this case, we're sending the "stop" command to minecraft server console
             subprocess.run(
                 ["screen", "-S", SCREEN_NAME, "-X", "stuff", "stop\n"], check=True
             )
