@@ -18,7 +18,9 @@ def _load_config():
             with open(config_path, "r") as f:
                 _config = json.load(f)
         except FileNotFoundError:
-            raise FileNotFoundError("Server configuration file not found.")
+            raise FileNotFoundError(
+                "Server configuration file not found." + config_path
+            )
     return _config
 
 
