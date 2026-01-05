@@ -6,13 +6,23 @@ import discord
 import matplotlib.pyplot as plt
 from discord.ext import commands
 
-from .database import run_sql_query, store_messages
+from .database import store_messages
 from .helpers.permissions import (
     get_user_permissions,
     grant_command,
     is_anshu,
     requires_permission,
     revoke_command,
+)
+from .helpers.safety import (
+    RateLimitError,
+    TimeoutError,
+    check_code_safety,
+    get_safe_exec_globals,
+    limit_query_results,
+    rate_limit,
+    timeout,
+    validate_sql_query,
 )
 from .mcserver import restart_server, start_server, stop_server
 
@@ -146,6 +156,7 @@ async def permissions(ctx, user: discord.User | None = None):
 
 @bot.command(name="matplotlib")
 @requires_permission("matplotlib")
+@rate_limit(calls=5, period=60)  # 5 plots per minute
 async def matplotlib(ctx, *, code: str = ""):
     """
     Executes matplotlib code and returns the generated plot as an image.
@@ -184,14 +195,28 @@ async def matplotlib(ctx, *, code: str = ""):
     if match:
         code = match.group(1).strip()
 
-    # Prepare a local scope for executing the code
-    # This is done to limit the available variables and functions
+    # Check code safety
+    is_safe, warning = check_code_safety(code)
+    if not is_safe:
+        await ctx.send(f"❌ Unsafe code detected: {warning}")
+        return
 
-    local_scope = {"plt": plt}
+    # Limit code length
+    if len(code) > 2000:
+        await ctx.send("❌ Code is too long (max 2000 characters)")
+        return
+
+    # Use restricted globals for safety
+    safe_globals = get_safe_exec_globals()
+    local_scope = {}
+
+    @timeout(5)  # 5 second timeout
+    def execute_code():
+        exec(code, safe_globals, local_scope)
 
     try:
-        # Execute the provided matplotlib code
-        exec(code, {}, local_scope)
+        # Execute the provided matplotlib code with timeout
+        execute_code()
 
         # Save the current figure to a BytesIO object
         img_bytes = io.BytesIO()
@@ -207,12 +232,19 @@ async def matplotlib(ctx, *, code: str = ""):
         # Clear the current figure to avoid overlap in future plots
         plt.clf()
 
+    except TimeoutError:
+        await ctx.send("❌ Code execution timed out (5 second limit)")
+        plt.clf()
+    except RateLimitError as e:
+        await ctx.send(f"⏱️ {e}")
     except Exception as e:
         await ctx.send(f"❌ Error executing matplotlib code: {e}")
+        plt.clf()
 
 
 @bot.command(name="runsql")
 @requires_permission("runsql")
+@rate_limit(calls=10, period=60)  # 10 queries per minute
 async def runsql(ctx, *, query: str = ""):
     """
     Runs a SQL query on the database file in the current directory.
@@ -246,6 +278,17 @@ async def runsql(ctx, *, query: str = ""):
     if match:
         query = match.group(1).strip()
 
+    # Validate query safety
+    is_valid, error_msg = validate_sql_query(query)
+    if not is_valid:
+        await ctx.send(f"❌ Query validation failed: {error_msg}")
+        return
+
+    # Limit query length
+    if len(query) > 5000:
+        await ctx.send("❌ Query is too long (max 5000 characters)")
+        return
+
     # Find any database file (not channel-specific)
     pattern = "*_messages.db"
     matching_files = glob.glob(pattern)
@@ -258,7 +301,47 @@ async def runsql(ctx, *, query: str = ""):
     db_path = sorted(matching_files)[-1]
 
     try:
-        response = await run_sql_query(db_path, query)
+        # Run query with timeout wrapper
+        @timeout(10)  # 10 second timeout for queries
+        def execute_query():
+            import sqlite3
+
+            conn = sqlite3.connect(db_path, timeout=5.0)
+            # Register custom SQL functions
+            from .database import (
+                is_tracked,
+                real_name,
+                sentiment_label,
+                sentiment_polarity,
+                sentiment_subjectivity,
+                word_count,
+            )
+
+            conn.create_function("sentiment_polarity", 1, sentiment_polarity)
+            conn.create_function("sentiment_subjectivity", 1, sentiment_subjectivity)
+            conn.create_function("sentiment_label", 1, sentiment_label)
+            conn.create_function("word_count", 1, word_count)
+            conn.create_function("real_name", 1, real_name)
+            conn.create_function("is_tracked", 1, is_tracked)
+
+            c = conn.cursor()
+            c.execute(query)
+            results = c.fetchall()
+            conn.close()
+            return results
+
+        results = execute_query()
+
+        # Limit results
+        results, was_truncated = limit_query_results(results, max_rows=1000)
+
+        if not results:
+            response = "Query executed successfully, but no results to display."
+        else:
+            result_str = "\n".join([str(row) for row in results])
+            if was_truncated:
+                result_str += "\n\n⚠️ Results truncated to 1000 rows"
+            response = f"Query Results:\n{result_str}"
 
         # Create a text file with the results
         file_content = f"SQL Query:\n{query}\n\n{'=' * 60}\n\nResults:\n{response}"
@@ -271,6 +354,10 @@ async def runsql(ctx, *, query: str = ""):
         # Send only the file, no preview
         await ctx.send(file=discord_file)
 
+    except TimeoutError:
+        await ctx.send("❌ Query execution timed out (10 second limit)")
+    except RateLimitError as e:
+        await ctx.send(f"⏱️ {e}")
     except Exception as e:
         await ctx.send(f"❌ Error executing query: {e}")
 
@@ -287,6 +374,9 @@ async def on_command_error(ctx, error):
             await ctx.send(
                 "❌ I don't have permission to perform that action in this channel."
             )
+        elif isinstance(error.original, (TimeoutError, RateLimitError)):
+            # These are already handled
+            pass
         else:
             await ctx.send(f"❌ An error occurred: {error.original}")
     else:
