@@ -1,7 +1,7 @@
 [project]
-name = "template"
+name = "tsurugi"
 version = "0.1.0"
-description = "Add your description here"
+description = "Discord bot for message archiving, SQL queries, and data visualization"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -10,3 +10,6 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "textblob>=0.18.0",
 ]
+
+[project.scripts]
+tsurugi = "tsurugi.__main__:main"
