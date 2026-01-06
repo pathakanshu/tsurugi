@@ -4,36 +4,26 @@ import os
 import subprocess
 
 SCREEN_NAME = "mcserver"
-_config = None
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "server_info.json")
+
+try:
+    with open(CONFIG_PATH, "r") as f:
+        config = json.load(f)
+except FileNotFoundError:
+    raise FileNotFoundError("Server configuration file not found." + CONFIG_PATH)
+
+MINECRAFT_PATH = config["minecraft"]["path"]
+JAR_PATH = os.path.join(MINECRAFT_PATH, config["minecraft"]["jar_file_name"])
 
 
-def _load_config():
-    """Lazy load server configuration."""
-    global _config
-    if _config is None:
-        config_path = os.path.join(os.path.dirname(__file__), "server_info.json")
-
-        try:
-            with open(config_path, "r") as f:
-                _config = json.load(f)
-        except FileNotFoundError:
-            raise FileNotFoundError(
-                "Server configuration file not found." + config_path
-            )
-    return _config
-
-
-def _get_start_cmd():
-    """Build the start command from config."""
-    config = _load_config()
-
-    return f"cd {
-        os.path.expanduser(config['minecraft']['path'])
-    } && java -Xms12G -Xmx16G -jar {
-        os.path.expanduser(
-            config['minecraft']['path'] + config['minecraft']['jar_file_name']
-        )
-    } nogui"
+START_CMD: list[str] = [
+    "java",
+    "-Xms12G",
+    "-Xmx16G",
+    "-jar",
+    str(JAR_PATH),
+    "nogui",
+]
 
 
 def server_is_running():
@@ -48,13 +38,20 @@ async def start_server(ctx):
         return
 
     msg = await ctx.send("Starting Minecraft server...")
-    print(_get_start_cmd())
+
     try:
-        # Start the Minecraft server in a screen session
         subprocess.run(
-            ["screen", "-dmS", SCREEN_NAME, "bash", "-c", _get_start_cmd()],
+            [
+                "screen",
+                "-dmS",
+                SCREEN_NAME,
+                *(START_CMD),
+            ],
+            cwd=MINECRAFT_PATH,
             check=True,
         )
+
+        await msg.edit(content="Minecraft server started successfully!")
     except subprocess.CalledProcessError as e:
         await msg.edit(content=f"Failed to start Minecraft server: {e}")
 
@@ -95,7 +92,8 @@ async def restart_server(ctx):
     await msg.edit(content="Starting Minecraft server...")
     try:
         subprocess.run(
-            ["screen", "-dmS", SCREEN_NAME, "bash", "-c", _get_start_cmd()],
+            ["screen", "-dmS", SCREEN_NAME, *START_CMD],
+            cwd=MINECRAFT_PATH,
             check=True,
         )
         await msg.edit(content="Minecraft server restarted successfully!")
