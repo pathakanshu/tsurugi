@@ -26,7 +26,7 @@ from .helpers.safety import (
     timeout,
     validate_sql_query,
 )
-from .mcserver import restart_server, start_server, stop_server
+from .mcserver import console_command, restart_server, start_server, stop_server
 
 intents = discord.Intents.default()
 intents.message_content = True  # Enable access to message content
@@ -64,6 +64,16 @@ async def mcserver(ctx, *, arg):
             await ctx.send("Config is yet to be implemented")
         case _:
             await ctx.send("Invalid argument.")
+
+
+@bot.command(name="mcc")
+async def mcc(ctx, *, command: str):
+    """
+    Execute a console command in the Minecraft server.
+    Usage: !mcc <command>
+    Example: !mcc say Hello world!
+    """
+    await console_command(ctx, command)
 
 
 @bot.command(name="lock")

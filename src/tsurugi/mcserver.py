@@ -104,3 +104,24 @@ async def restart_server(ctx):
     await ctx.send("Waiting 5s for clean shutdown...")
     await asyncio.sleep(5)  # Wait for clean shutdown
     await start_server(ctx)
+
+
+async def console_command(ctx, command: str):
+    """
+    Execute a console command in the Minecraft server.
+    Only works if the server is running.
+    """
+    if not server_is_running():
+        await ctx.send("❌ Minecraft server is not running!")
+        return
+
+    try:
+        # Send the command to the screen session
+        # The \n at the end simulates pressing Enter
+        subprocess.run(
+            ["screen", "-S", SCREEN_NAME, "-X", "stuff", f"{command}\n"],
+            check=True,
+        )
+        await ctx.send(f"✅ Command sent: `{command}`")
+    except subprocess.CalledProcessError as e:
+        await ctx.send(f"❌ Failed to send command: {e}")
