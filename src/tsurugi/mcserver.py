@@ -50,12 +50,26 @@ async def start_server(ctx):
             logger.info(f"MINECRAFT_PATH: {MINECRAFT_PATH}")
             logger.info(f"JAR_PATH: {JAR_PATH}")
             logger.info(f"START_CMD: {START_CMD}")
-            logger.info(
-                f"Full subprocess call: screen -dmS {SCREEN_NAME} bash -c {cmd}"
-            )
+
+            # Use systemd-run to escape bot's cgroup memory limits
+            # --scope creates a transient scope unit
+            # --user runs as the current user (not system-wide)
+            systemd_cmd = [
+                "systemd-run",
+                "--user",
+                "--scope",
+                "--unit=minecraft-server",
+                "screen",
+                "-dmS",
+                SCREEN_NAME,
+                "bash",
+                "-c",
+                cmd,
+            ]
+            logger.info(f"Full subprocess call: {' '.join(systemd_cmd)}")
 
             result = subprocess.run(
-                ["screen", "-dmS", SCREEN_NAME, "bash", "-c", cmd],
+                systemd_cmd,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -126,8 +140,23 @@ async def restart_server(ctx):
             # Build command that changes directory before starting server
             cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
             logger.info(f"Restarting Minecraft server with command: {cmd}")
+
+            # Use systemd-run to escape bot's cgroup memory limits
+            systemd_cmd = [
+                "systemd-run",
+                "--user",
+                "--scope",
+                "--unit=minecraft-server",
+                "screen",
+                "-dmS",
+                SCREEN_NAME,
+                "bash",
+                "-c",
+                cmd,
+            ]
+
             subprocess.run(
-                ["screen", "-dmS", SCREEN_NAME, "bash", "-c", cmd],
+                systemd_cmd,
                 check=True,
             )
             await msg.edit(content="Minecraft server restarted successfully!")
