@@ -101,5 +101,6 @@ async def restart_server(ctx):
         return
 
     await stop_server(ctx)
+    await ctx.send("Waiting 5s for clean shutdown...")
     await asyncio.sleep(5)  # Wait for clean shutdown
     await start_server(ctx)
