@@ -52,13 +52,16 @@ async def start_server(ctx):
             logger.info(f"START_CMD: {START_CMD}")
 
             # Use systemd-run to escape bot's cgroup memory limits
-            # --scope creates a transient scope unit
-            # --user runs as the current user (not system-wide)
+            # --scope creates a transient scope unit at system level
+            # --setenv passes environment variables
             systemd_cmd = [
+                "sudo",
                 "systemd-run",
-                "--user",
                 "--scope",
                 "--unit=minecraft-server",
+                "--setenv=HOME=/home/ubuntu",
+                "--uid=ubuntu",
+                "--gid=ubuntu",
                 "screen",
                 "-dmS",
                 SCREEN_NAME,
@@ -143,10 +146,13 @@ async def restart_server(ctx):
 
             # Use systemd-run to escape bot's cgroup memory limits
             systemd_cmd = [
+                "sudo",
                 "systemd-run",
-                "--user",
                 "--scope",
                 "--unit=minecraft-server",
+                "--setenv=HOME=/home/ubuntu",
+                "--uid=ubuntu",
+                "--gid=ubuntu",
                 "screen",
                 "-dmS",
                 SCREEN_NAME,
