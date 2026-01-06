@@ -52,6 +52,7 @@ async def ping(ctx):
 
 
 @bot.command(name="mcserver")
+@requires_permission("mcserver")
 async def mcserver(ctx, *, arg):
     match arg:
         case "start":
@@ -67,6 +68,7 @@ async def mcserver(ctx, *, arg):
 
 
 @bot.command(name="mcc")
+@requires_permission("mcc")
 async def mcc(ctx, *, command: str):
     """
     Execute a console command in the Minecraft server.
