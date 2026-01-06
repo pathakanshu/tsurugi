@@ -15,12 +15,15 @@ except FileNotFoundError:
 MINECRAFT_PATH = config["minecraft"]["path"]
 JAR_PATH = os.path.join(MINECRAFT_PATH, config["minecraft"]["jar_file_name"])
 CPU_QUOTA = config["minecraft"].get("cpu_quota", 60)  # Default to 60% if not specified
+MEMORY_LIMIT_GB = config["minecraft"].get(
+    "memory_limit_gb", 12
+)  # Default to 12GB if not specified
 
 
 START_CMD: list[str] = [
     "java",
-    "-Xms12G",
-    "-Xmx16G",
+    f"-Xms{MEMORY_LIMIT_GB}G",
+    f"-Xmx{MEMORY_LIMIT_GB}G",
     "-jar",
     str(JAR_PATH),
     "nogui",
@@ -53,6 +56,7 @@ async def start_server(ctx):
                 "--scope",
                 "--unit=minecraft-server",
                 f"--property=CPUQuota={CPU_QUOTA}%",
+                f"--property=MemoryMax={MEMORY_LIMIT_GB}G",
                 "--setenv=HOME=/home/ubuntu",
                 "--uid=ubuntu",
                 "--gid=ubuntu",
@@ -68,7 +72,7 @@ async def start_server(ctx):
             await asyncio.sleep(1)
 
             if server_is_running():
-                await msg.edit(content="Minecraft screen session started successfully!")
+                await msg.edit(content="Screen session started...")
             else:
                 await msg.edit(
                     content="Screen session created but server may not be running. Check logs."
