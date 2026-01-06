@@ -40,14 +40,10 @@ async def start_server(ctx):
     msg = await ctx.send("Starting Minecraft server...")
 
     try:
+        # Build command that changes directory before starting server
+        cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
         subprocess.run(
-            [
-                "screen",
-                "-dmS",
-                SCREEN_NAME,
-                *(START_CMD),
-            ],
-            cwd=MINECRAFT_PATH,
+            ["screen", "-dmS", SCREEN_NAME, "bash", "-c", cmd],
             check=True,
         )
 
@@ -91,9 +87,10 @@ async def restart_server(ctx):
     # Start the server
     await msg.edit(content="Starting Minecraft server...")
     try:
+        # Build command that changes directory before starting server
+        cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
         subprocess.run(
-            ["screen", "-dmS", SCREEN_NAME, *START_CMD],
-            cwd=MINECRAFT_PATH,
+            ["screen", "-dmS", SCREEN_NAME, "bash", "-c", cmd],
             check=True,
         )
         await msg.edit(content="Minecraft server restarted successfully!")
