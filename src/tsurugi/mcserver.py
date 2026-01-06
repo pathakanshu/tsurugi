@@ -45,11 +45,13 @@ async def start_server(ctx):
             cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
 
             # Use systemd-run to escape bot's cgroup memory limits
+            # CPUQuota=60% limits the server to 60% of one CPU core
             systemd_cmd = [
                 "sudo",
                 "systemd-run",
                 "--scope",
                 "--unit=minecraft-server",
+                "--property=CPUQuota=60%",
                 "--setenv=HOME=/home/ubuntu",
                 "--uid=ubuntu",
                 "--gid=ubuntu",
