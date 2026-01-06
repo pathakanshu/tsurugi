@@ -4,7 +4,7 @@ import os
 import subprocess
 
 SCREEN_NAME = "mcserver"
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), "server_info.json")
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config", "server_info.json")
 
 try:
     with open(CONFIG_PATH, "r") as f:
@@ -14,6 +14,7 @@ except FileNotFoundError:
 
 MINECRAFT_PATH = config["minecraft"]["path"]
 JAR_PATH = os.path.join(MINECRAFT_PATH, config["minecraft"]["jar_file_name"])
+CPU_QUOTA = config["minecraft"].get("cpu_quota", 60)  # Default to 60% if not specified
 
 
 START_CMD: list[str] = [
@@ -45,13 +46,13 @@ async def start_server(ctx):
             cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
 
             # Use systemd-run to escape bot's cgroup memory limits
-            # CPUQuota=60% limits the server to 60% of one CPU core
+            # CPUQuota limits the server CPU usage (configurable in server_info.json)
             systemd_cmd = [
                 "sudo",
                 "systemd-run",
                 "--scope",
                 "--unit=minecraft-server",
-                "--property=CPUQuota=60%",
+                f"--property=CPUQuota={CPU_QUOTA}%",
                 "--setenv=HOME=/home/ubuntu",
                 "--uid=ubuntu",
                 "--gid=ubuntu",
