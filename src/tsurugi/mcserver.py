@@ -1,7 +1,10 @@
 import asyncio
 import json
+import logging
 import os
 import subprocess
+
+logger = logging.getLogger(__name__)
 
 SCREEN_NAME = "mcserver"
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "server_info.json")
@@ -42,6 +45,8 @@ async def start_server(ctx):
     try:
         # Build command that changes directory before starting server
         cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
+        logger.info(f"Starting Minecraft server with command: {cmd}")
+        logger.info(f"Full subprocess call: screen -dmS {SCREEN_NAME} bash -c {cmd}")
         subprocess.run(
             ["screen", "-dmS", SCREEN_NAME, "bash", "-c", cmd],
             check=True,
@@ -89,6 +94,7 @@ async def restart_server(ctx):
     try:
         # Build command that changes directory before starting server
         cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
+        logger.info(f"Restarting Minecraft server with command: {cmd}")
         subprocess.run(
             ["screen", "-dmS", SCREEN_NAME, "bash", "-c", cmd],
             check=True,
