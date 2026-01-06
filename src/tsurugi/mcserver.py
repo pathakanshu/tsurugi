@@ -65,7 +65,7 @@ async def start_server(ctx):
             await asyncio.sleep(1)
 
             if server_is_running():
-                await msg.edit(content="Minecraft server started successfully!")
+                await msg.edit(content="Minecraft screen session started successfully!")
             else:
                 await msg.edit(
                     content="Screen session created but server may not be running. Check logs."
@@ -96,48 +96,10 @@ async def stop_server(ctx):
 
 
 async def restart_server(ctx):
-    try:
-        if not server_is_running():
-            await ctx.send("Minecraft server is not running!")
-            return
+    if not server_is_running():
+        await ctx.send("Minecraft server is not running!")
+        return
 
-        # Stop the server
-        msg = await ctx.send("Stopping Minecraft server...")
-        try:
-            subprocess.run(
-                ["screen", "-S", SCREEN_NAME, "-X", "stuff", "stop\n"], check=True
-            )
-            await asyncio.sleep(5)  # Wait for clean shutdown
-        except subprocess.CalledProcessError as e:
-            await msg.edit(content=f"Failed to stop server: {e}")
-            return
-
-        # Start the server
-        await msg.edit(content="Starting Minecraft server...")
-        try:
-            # Build command that changes directory before starting server
-            cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
-
-            # Use systemd-run to escape bot's cgroup memory limits
-            systemd_cmd = [
-                "sudo",
-                "systemd-run",
-                "--scope",
-                "--unit=minecraft-server",
-                "--setenv=HOME=/home/ubuntu",
-                "--uid=ubuntu",
-                "--gid=ubuntu",
-                "screen",
-                "-dmS",
-                SCREEN_NAME,
-                "bash",
-                "-c",
-                cmd,
-            ]
-
-            subprocess.run(systemd_cmd, check=True)
-            await msg.edit(content="Minecraft server restarted successfully!")
-        except subprocess.CalledProcessError as e:
-            await msg.edit(content=f"Failed to start server: {e}")
-    except Exception as e:
-        await ctx.send(f"Unexpected error: {e}")
+    await stop_server(ctx)
+    await asyncio.sleep(5)  # Wait for clean shutdown
+    await start_server(ctx)
