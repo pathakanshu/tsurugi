@@ -6,7 +6,7 @@ from discord.ext import commands
 # Load user mappings
 USER_MAPPINGS_DATA = {}
 USER_MAPPINGS_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "data", "user_mappings.json"
+    os.path.dirname(os.path.dirname(__file__)), "config", "user_mappings.json"
 )
 
 # Command permissions

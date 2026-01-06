@@ -8,7 +8,7 @@ from textblob import TextBlob
 # Load user mappings
 USER_MAPPINGS = {}
 USER_MAPPINGS_PATH = os.path.join(
-    os.path.dirname(__file__), "data", "user_mappings.json"
+    os.path.dirname(__file__), "config", "user_mappings.json"
 )
 
 try:
