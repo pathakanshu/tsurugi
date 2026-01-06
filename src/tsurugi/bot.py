@@ -1,10 +1,13 @@
 import glob
 import io
+import logging
 import re
 
 import discord
 import matplotlib.pyplot as plt
 from discord.ext import commands
+
+logger = logging.getLogger(__name__)
 
 from .database import store_messages
 from .helpers.permissions import (
@@ -53,17 +56,26 @@ async def ping(ctx):
 
 @bot.command(name="mcserver")
 async def mcserver(ctx, *, arg):
-    match arg:
-        case "start":
-            await start_server(ctx)
-        case "stop":
-            await stop_server(ctx)
-        case "restart":
-            await restart_server(ctx)
-        case "config":
-            await ctx.send("Config is yet to be implemented")
-        case _:
-            await ctx.send("Invalid argument.")
+    logger.info(f"mcserver command called with arg: {arg}")
+    logger.info(f"Command invoked by: {ctx.author}")
+    try:
+        match arg:
+            case "start":
+                logger.info("Calling start_server")
+                await start_server(ctx)
+            case "stop":
+                logger.info("Calling stop_server")
+                await stop_server(ctx)
+            case "restart":
+                logger.info("Calling restart_server")
+                await restart_server(ctx)
+            case "config":
+                await ctx.send("Config is yet to be implemented")
+            case _:
+                await ctx.send("Invalid argument.")
+    except Exception as e:
+        logger.exception("Error in mcserver command handler")
+        await ctx.send(f"Error: {e}")
 
 
 @bot.command(name="lock")
