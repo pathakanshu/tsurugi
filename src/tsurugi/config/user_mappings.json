@@ -1,0 +1,81 @@
+{
+  "users": {
+    "alish": {
+      "name": "Alish",
+      "accounts": [
+        {
+          "user_id": "456226577798135808",
+          "username": "Deleted User"
+        },
+        {
+          "user_id": "771918166028582943",
+          "username": "inept3773"
+        },
+        {
+          "user_id": "1392477214347493386",
+          "username": "thor008369"
+        }
+      ]
+    },
+    "abhigya": {
+      "name": "Abhigya",
+      "accounts": [
+        {
+          "user_id": "707472976454483988",
+          "username": "inheritance"
+        },
+        {
+          "user_id": "977601216886493244",
+          "username": "voldemort1688"
+        }
+      ]
+    },
+    "anshu": {
+      "name": "Anshu",
+      "accounts": [
+        {
+          "user_id": "536875405819379733",
+          "username": "_yourknight"
+        }
+      ]
+    },
+    "sujan": {
+      "name": "Sujan",
+      "accounts": [
+        {
+          "user_id": "302281963455250434",
+          "username": "sujanks7"
+        }
+      ]
+    },
+    "nishan": {
+      "name": "Nishan",
+      "accounts": [
+        {
+          "user_id": "887894384031461426",
+          "username": "marktraces"
+        },
+        {
+          "user_id": "716920774547472454",
+          "username": "n.ghimire"
+        },
+        {
+          "user_id": "1319591814138695733",
+          "username": "hereisn"
+        },
+        {
+          "user_id": "735048894186127463",
+          "username": "executioner2410"
+        },
+        {
+          "user_id": "845143236590043156",
+          "username": "leirimd.mercury6514"
+        },
+        {
+          "user_id": "822429806796865566",
+          "username": "incubus1891"
+        }
+      ]
+    }
+  }
+}
