@@ -1,5 +1,5 @@
 from .bot import bot
-from .config import DISCORD_TOKEN
+from .config.config import DISCORD_TOKEN
 
 
 def main():

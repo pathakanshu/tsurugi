@@ -55,8 +55,6 @@ async def start_server(ctx):
             ["screen", "-dmS", SCREEN_NAME, "bash", "-c", _get_start_cmd()],
             check=True,
         )
-
-        await msg.edit(content="Minecraft server started successfully!")
     except subprocess.CalledProcessError as e:
         await msg.edit(content=f"Failed to start Minecraft server: {e}")
 
@@ -73,7 +71,6 @@ async def stop_server(ctx):
         subprocess.run(
             ["screen", "-S", SCREEN_NAME, "-X", "stuff", "stop\n"], check=True
         )
-        await msg.edit(content="Minecraft server stopped successfully!")
     except subprocess.CalledProcessError as e:
         await msg.edit(content=f"Failed to stop Minecraft server: {e}")
 
@@ -89,7 +86,6 @@ async def restart_server(ctx):
         subprocess.run(
             ["screen", "-S", SCREEN_NAME, "-X", "stuff", "stop\n"], check=True
         )
-        await msg.edit(content="Server stopped. Waiting before restart...")
         await asyncio.sleep(5)  # Wait for clean shutdown
     except subprocess.CalledProcessError as e:
         await msg.edit(content=f"Failed to stop server: {e}")
