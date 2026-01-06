@@ -47,16 +47,36 @@ async def start_server(ctx):
             # Build command that changes directory before starting server
             cmd = f"cd {MINECRAFT_PATH} && {' '.join(START_CMD)}"
             logger.info(f"Starting Minecraft server with command: {cmd}")
+            logger.info(f"MINECRAFT_PATH: {MINECRAFT_PATH}")
+            logger.info(f"JAR_PATH: {JAR_PATH}")
+            logger.info(f"START_CMD: {START_CMD}")
             logger.info(
                 f"Full subprocess call: screen -dmS {SCREEN_NAME} bash -c {cmd}"
             )
-            subprocess.run(
+
+            result = subprocess.run(
                 ["screen", "-dmS", SCREEN_NAME, "bash", "-c", cmd],
+                capture_output=True,
+                text=True,
                 check=True,
             )
+            logger.info(f"Subprocess stdout: {result.stdout}")
+            logger.info(f"Subprocess stderr: {result.stderr}")
 
-            await msg.edit(content="Minecraft server started successfully!")
+            # Give screen a moment to start
+            await asyncio.sleep(1)
+
+            # Check if it's actually running
+            if server_is_running():
+                await msg.edit(content="Minecraft server started successfully!")
+            else:
+                await msg.edit(
+                    content="Screen session created but server may not be running. Check logs."
+                )
         except subprocess.CalledProcessError as e:
+            logger.error(f"CalledProcessError: {e}")
+            logger.error(f"Error stdout: {e.stdout}")
+            logger.error(f"Error stderr: {e.stderr}")
             await msg.edit(content=f"Failed to start Minecraft server: {e}")
     except Exception as e:
         logger.exception("Unexpected error in start_server")
