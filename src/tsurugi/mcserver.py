@@ -18,6 +18,7 @@ CPU_QUOTA = config["minecraft"].get("cpu_quota", 60)  # Default to 60% if not sp
 MEMORY_LIMIT_GB = config["minecraft"].get(
     "memory_limit_gb", 12
 )  # Default to 12GB if not specified
+LOG_FILE = os.path.join(MINECRAFT_PATH, "logs", "latest.log")
 
 
 START_CMD: list[str] = [
@@ -117,18 +118,51 @@ async def console_command(ctx, command: str):
     """
     Execute a console command in the Minecraft server.
     Only works if the server is running.
+    Captures and returns the console output.
     """
     if not server_is_running():
         await ctx.send("❌ Minecraft server is not running!")
         return
 
     try:
+        # Get current log file size to know where to start reading
+        log_size_before = os.path.getsize(LOG_FILE) if os.path.exists(LOG_FILE) else 0
+
         # Send the command to the screen session
-        # The \n at the end simulates pressing Enter
         subprocess.run(
             ["screen", "-S", SCREEN_NAME, "-X", "stuff", f"{command}\n"],
             check=True,
         )
-        await ctx.send(f"✅ Command sent: `{command}`")
+
+        # Wait a bit for the command to execute and log
+        await asyncio.sleep(0.5)
+
+        # Read new log entries
+        if os.path.exists(LOG_FILE):
+            with open(LOG_FILE, "r") as f:
+                f.seek(log_size_before)
+                new_logs = f.read()
+
+            # Extract relevant output (filter out some noise)
+            lines = new_logs.strip().split("\n")
+            relevant_lines = []
+            for line in lines:
+                # Skip empty lines and DiscordSRV chat echoes
+                if line and "INFO]:" in line and "[DiscordSRV]" not in line:
+                    # Extract just the message part after timestamp
+                    parts = line.split("INFO]: ", 1)
+                    if len(parts) > 1:
+                        relevant_lines.append(parts[1])
+
+            if relevant_lines:
+                output = "\n".join(relevant_lines[:5])  # Limit to 5 lines
+                await ctx.send(f"```\n{output}\n```")
+            else:
+                await ctx.send(f"✅ Command sent: `{command}`")
+        else:
+            await ctx.send(f"✅ Command sent: `{command}` (log file not found)")
+
     except subprocess.CalledProcessError as e:
         await ctx.send(f"❌ Failed to send command: {e}")
+    except Exception as e:
+        await ctx.send(f"❌ Error reading output: {e}")
